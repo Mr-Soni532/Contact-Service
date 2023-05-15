@@ -41,10 +41,10 @@ exports.deleteContact = async (req, res) => {
 
 exports.getAllContact = async (req, res) => {
     try {
-        const data = await Contact.findAll()
+        let data = await Contact.findAll()
         if (data.length) return res.status(200).send(data);
         data = data.splice(0, (page*10)-1);
-        return req.status(204)
+        return res.status(204)
     } catch (error) {
         res.status(500).send({ error: 'Something went wrong while getting contact' })
         console.log(error)
@@ -58,12 +58,13 @@ exports.searchContact = async (req, res) => {
         if (query == undefined)
             return res.status(400).send('Invalid seach parameters: \n Query parameter must include name or email');
 
-        const data = await Contact.findOne(query)
+        const data = await Contact.findOne({ where: { $or: [{ name: req.query.name }, { email: req.query.email }] } });
+
         data = data.splice(0, (page*10)-1);
         if (data) return res.status(200).send(data);
         return res.status(404).send(`No contact found matching query ${query}`);
     } catch (error) {
-        res.status(500).send({ error: 'Something went wrong while getting contact with query ${query}' })
+        res.status(500).send({ error: `Something went wrong while getting contact with query ${query}` })
         console.log(error)
     }
 }
